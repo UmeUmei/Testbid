@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BidHub - ระบบประมูลสินค้าออนไลน์</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ====================================================
+       SECTION: Navigation Bar (แถบเมนูด้านบน)
+  ==================================================== -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <button class="back-btn" onclick="goBack()">← ย้อนกลับ</button>
+      <div class="logo" onclick="navigateTo('home-page')">⚡ BidHub</div>
+    </div>
+    <ul class="nav-links">
+      <li><a onclick="navigateTo('home-page')">หน้าหลัก</a></li>
+      <li><a onclick="navigateTo('sell-page')">วางขายสินค้า</a></li>
+      <li><a onclick="navigateTo('profile-page')">โปรไฟล์</a></li>
+      <li><a onclick="navigateTo('chat-page')">แชท</a></li>
+      <li><a id="nav-login-btn" onclick="navigateTo('login-page')">เข้าสู่ระบบ</a></li>
+    </ul>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙/☀️ ธีม</button>
+  </nav>
+
+  <div class="container">
+
+    <!-- ====================================================
+         SECTION 1: หน้าเข้าสู่ระบบ (Login Page - Updated)
+    ==================================================== -->
+    <div id="login-page" class="page">
+      <div class="card" style="max-width: 400px; margin: 2rem auto;">
+        <h2 style="margin-bottom: 1.5rem; text-align: center;">เข้าสู่ระบบ</h2>
+        
+        <!-- Social Login Buttons -->
+        <button class="btn-social btn-facebook" onclick="loginWithSocial('facebook')">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          เข้าสู่ระบบด้วย Facebook
+        </button>
+
+        <button class="btn-social btn-google" onclick="loginWithSocial('google')">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.18-.53-.28-1.09-.28-1.78s.1-1.25.28-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
+          เข้าสู่ระบบด้วย Google
+        </button>
+
+        <div class="divider"><span>หรือเข้าสู่ระบบด้วยอีเมล</span></div>
+
+        <form onsubmit="handleEmailLogin(event)">
+          <div class="form-group">
+            <label>อีเมล / ชื่อผู้ใช้</label>
+            <input type="email" id="login-email" placeholder="example@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>รหัสผ่าน</label>
+            <input type="password" placeholder="กรอกรหัสผ่าน" required>
+          </div>
+          <button type="submit" class="btn" style="width: 100%;">เข้าสู่ระบบ</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         SECTION 2: หน้าหลักแสดงรายการประมูล (Home Page)
+    ==================================================== -->
+    <div id="home-page" class="page">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>รายการประมูลทั้งหมด</h2>
+        <button class="back-btn" onclick="clearAllProducts()">[ทดสอบ] ล้างรายการเป็น 0</button>
+      </div>
+      <div id="product-container"></div>
+    </div>
+
+    <!-- ====================================================
+         SECTION 3: หน้าโปรไฟล์ผู้ใช้งาน (Profile Page)
+    ==================================================== -->
+    <div id="profile-page" class="page">
+      <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <div class="avatar-circle" id="profile-avatar" style="width: 70px; height: 70px; font-size: 1.8rem;">M</div>
+          <div>
+            <h2 id="profile-name">Mawin Profile</h2>
+            <p style="color: var(--text-muted);">สถานะ: <strong style="color: var(--primary-color);">ผู้วางขาย & ผู้ประมูล</strong></p>
+          </div>
+        </div>
+        <hr style="border-color: var(--border-color); margin: 1rem 0;">
+        <div class="form-group">
+          <label>อีเมลผู้ใช้งาน</label>
+          <input type="text" id="profile-email" value="-" readonly>
+        </div>
+        <div class="form-group">
+          <label>ช่องทางการเข้าสู่ระบบ</label>
+          <input type="text" id="profile-provider" value="-" readonly>
+        </div>
+        <div class="form-group">
+          <label>สิ่งที่คุณสนใจ</label>
+          <div class="category-tags">
+            <span class="tag">🎮 ไอที / เกมมิ่ง</span>
+            <span class="tag">📷 กล้องถ่ายรูป</span>
+            <span class="tag">👟 แฟชั่น</span>
+          </div>
+        </div>
+        <div id="profile-logout-container" style="margin-top: 1.5rem; display: none;">
+          <button class="btn" style="background-color: #e41e3f; width: 100%;" onclick="logout()">ออกจากระบบ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         SECTION 4: หน้าเข้าร่วมประมูลสินค้า (Auction Detail)
+    ==================================================== -->
+    <div id="auction-page" class="page">
+      <div class="card">
+        <div class="auction-layout">
+          <div class="product-gallery">
+            <img id="detail-img" src="" alt="สินค้า">
+          </div>
+          <div>
+            <span class="badge-live">LIVE AUCTION</span>
+            <h2 id="detail-title" style="margin-top: 0.5rem;">-</h2>
+            <p class="timer" style="font-size: 1.1rem;">⏳ เหลือเวลา: <span id="detail-timer">00:00:00</span></p>
+            
+            <hr style="border-color: var(--border-color); margin: 1rem 0;">
+            
+            <p>ราคาเริ่มต้น: <strong id="detail-start-price">฿0</strong></p>
+            <p style="font-size: 1.6rem; font-weight: bold; color: var(--primary-color); margin: 0.4rem 0;">
+              ราคาปัจจุบัน: <span id="detail-current-price">฿0</span>
+            </p>
+            
+            <p style="color: var(--text-muted); font-size:0.9rem;">
+              บิดขั้นต่ำ: <strong id="detail-min-bid">+฿10</strong> | 
+              ราคาสูงสุด (ซื้อทันที): <strong id="detail-max-price" style="color:#e41e3f;">ไม่มี</strong>
+            </p>
+            <p style="color: var(--text-muted); font-size:0.9rem; margin-top:0.3rem;">
+              👁️ ผู้เข้าชมเรียลไทม์: <strong id="detail-live-users" style="color: #31a24c;">1</strong> คน
+            </p>
+            
+            <div style="margin: 1.5rem 0; background: var(--bg-color); padding: 1rem; border-radius: 8px;">
+              <label style="display:block; margin-bottom: 0.5rem; font-weight: bold;">เสนอราคาประมูล</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="number" id="bid-input" style="padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); flex: 1;">
+                <button class="btn" id="bid-btn" onclick="placeBid()">ส่งราคา (Bid)</button>
+              </div>
+            </div>
+
+            <h4>ประวัติการเสนอราคา</h4>
+            <div class="bid-history" id="bid-history-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         SECTION 5: หน้าวางขายสินค้า (Sell Page)
+    ==================================================== -->
+    <div id="sell-page" class="page">
+      <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h2>วางขายสินค้าประมูล</h2>
+        <form onsubmit="handleCreateProduct(event)">
+          
+          <div class="form-group" style="margin-top: 1rem;">
+            <label>ชื่อสินค้า</label>
+            <input type="text" id="sell-title" placeholder="เช่น หูฟังบลูทูธ สภาพใหม่" required>
+          </div>
+
+          <div class="form-group">
+            <label>รูปแบบการเพิ่มรูปภาพ</label>
+            <select id="img-input-type" onchange="toggleImgInputType()">
+              <option value="file">อัปโหลดไฟล์รูปภาพ</option>
+              <option value="url">ใส่ URL ลิงก์รูปภาพ</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="file-input-group">
+            <label>เลือกไฟล์รูปภาพ</label>
+            <input type="file" id="sell-img-file" accept="image/*">
+          </div>
+
+          <div class="form-group" id="url-input-group" style="display: none;">
+            <label>URL ลิงก์รูปภาพ</label>
+            <input type="url" id="sell-img-url" placeholder="https://example.com/image.jpg">
+          </div>
+
+          <div style="display: flex; gap: 1rem;">
+            <div class="form-group" style="flex: 1;">
+              <label>ราคาเริ่มต้น (บาท)</label>
+              <input type="number" id="sell-start-price" placeholder="100" required>
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+              <label>บิดขั้นต่ำ (บาท)</label>
+              <input type="number" id="sell-min-bid" value="10" min="10" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>ราคาสูงสุด / ซื้อทันที (บาท) <span style="font-size:0.8rem; color:var(--text-muted);">(ไม่ใส่ = ไม่มี)</span></label>
+            <input type="number" id="sell-max-price" placeholder="เช่น 2000 (หากมีคนสู้ราคานี้จะจบประมูลทันที)">
+          </div>
+
+          <div style="display: flex; gap: 1rem;">
+            <div class="form-group" style="flex: 1;">
+              <label>วันเวลาเปิดประมูล</label>
+              <input type="datetime-local" id="sell-start-date">
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+              <label>ระยะเวลา (ชม.) <span style="font-size:0.8rem; color:red;">*ขั้นต่ำ 5 ชม.</span></label>
+              <input type="number" id="sell-duration" value="5" min="5" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn" style="width: 100%;">เริ่มเปิดประมูล</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         SECTION 6: หน้าแชททรง Messenger (Chat Page)
+    ==================================================== -->
+    <div id="chat-page" class="page">
+      <div class="messenger-container">
+        <div class="messenger-sidebar">
+          <div class="chat-search">
+            <h3>แชท Messenger</h3>
+          </div>
+          <div class="chat-user-list">
+            <div class="chat-user-item active">
+              <div class="avatar-circle">T <div class="status-online"></div></div>
+              <div>
+                <strong>TechSeller</strong>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">ผู้ขาย: หูฟังไร้สาย...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="messenger-main">
+          <div class="chat-header">
+            <div class="avatar-circle">T <div class="status-online"></div></div>
+            <div>
+              <strong>TechSeller (ผู้ขาย)</strong>
+              <p style="font-size: 0.75rem; color: #31a24c;">กำลังใช้งาน</p>
+            </div>
+          </div>
+
+          <div class="chat-body" id="chat-body">
+            <div class="chat-bubble seller">สวัสดีครับ! ยินดีด้วยที่ชนะการประมูลครับ</div>
+            <div class="chat-bubble user">ขอบคุณครับ จัดส่งให้ได้วันไหนครับ?</div>
+            <div class="chat-bubble seller">พรุ่งนี้เช้าจัดส่งให้ทันทีครับ</div>
+          </div>
+
+          <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+            <button class="btn" style="border-radius: 20px; padding: 0.6rem 1.2rem;" onclick="sendChatMessage()">ส่ง</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
