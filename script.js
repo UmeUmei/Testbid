@@ -15,6 +15,9 @@ let products = [
   {
     id: 1,
     title: "หูฟังไร้สาย Flagship Model",
+    category: "tech",
+    sellerName: "TechSeller",
+    sellerRating: "4.9 / 5 (32 รีวิว)",
     img: "https://picsum.photos/400/300?random=1",
     startPrice: 500,
     currentPrice: 1200,
@@ -31,6 +34,7 @@ let products = [
 ];
 
 let currentActiveProductId = null;
+let notifications = [];
 
 // ----------------------------------------------------
 // 2. ระบบ Navigation & History API
@@ -163,30 +167,31 @@ function renderProfilePage() {
 }
 
 // ----------------------------------------------------
-// 4. Render หน้าหลัก & รายการสินค้า
+// 4. Render หน้าหลัก, รายการสินค้า & ค้นหา/กรอง
 // ----------------------------------------------------
-function renderHomePage() {
+function renderHomePage(filteredProducts = null) {
   const container = document.getElementById('product-container');
+  const listToRender = filteredProducts || products;
   
-  if (!products || products.length === 0) {
+  if (!listToRender || listToRender.length === 0) {
     container.innerHTML = `
-      <div class="empty-state">
-        <h3>🚫 ไม่มีการประมูลในขณะนี้</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">ยังไม่มีสินค้าที่เปิดประมูลอยู่ในขณะนี้ กรุณากลับมาเช็คใหม่ภายหลัง</p>
+      <div class="empty-state" style="text-align: center; padding: 3rem 1rem;">
+        <h3>🚫 ไม่พบรายการประมูล</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">ไม่มีสินค้าที่ตรงกับเงื่อนไขการค้นหาของคุณ</p>
         <button class="btn" onclick="navigateTo('sell-page')">ลงประมูลสินค้าเป็นคนแรก</button>
       </div>
     `;
     return;
   }
 
-  let html = '<div class="product-grid">';
-  products.forEach(p => {
+  let html = '<div class="product-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem;">';
+  listToRender.forEach(p => {
     const maxPriceText = p.maxPrice ? ` | ซื้อทันที: ฿${p.maxPrice.toLocaleString()}` : '';
     html += `
-      <div class="product-card" onclick="openAuctionDetail(${p.id})">
-        <img src="${p.img}" alt="${p.title}">
-        <div class="product-info">
-          <span class="badge-live" id="badge-${p.id}">LIVE</span>
+      <div class="product-card" onclick="openAuctionDetail(${p.id})" style="cursor: pointer; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--card-bg);">
+        <img src="${p.img}" alt="${p.title}" style="width: 100%; height: 180px; object-fit: cover;">
+        <div class="product-info" style="padding: 1rem;">
+          <span class="badge-live" id="badge-${p.id}" style="background: red; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">LIVE</span>
           <h3 style="margin-top:0.4rem; font-size:1.1rem;">${p.title}</h3>
           <p class="timer" id="card-timer-${p.id}">⏳ คำนวณเวลา...</p>
           <p style="font-weight: bold; color: var(--primary-color);">ราคาปัจจุบัน: ฿${p.currentPrice.toLocaleString()}</p>
@@ -197,6 +202,35 @@ function renderHomePage() {
   });
   html += '</div>';
   container.innerHTML = html;
+}
+
+function filterProducts() {
+  const searchKey = document.getElementById('search-input')?.value.toLowerCase().trim() || '';
+  const category = document.getElementById('category-filter')?.value || 'all';
+  const sort = document.getElementById('sort-filter')?.value || 'latest';
+
+  let result = [...products];
+
+  // กรองด้วยคำค้นหา
+  if (searchKey) {
+    result = result.filter(p => p.title.toLowerCase().includes(searchKey));
+  }
+
+  // กรองด้วยหมวดหมู่
+  if (category !== 'all') {
+    result = result.filter(p => p.category === category);
+  }
+
+  // เรียงลำดับ
+  if (sort === 'price-low') {
+    result.sort((a, b) => a.currentPrice - b.currentPrice);
+  } else if (sort === 'price-high') {
+    result.sort((a, b) => b.currentPrice - a.currentPrice);
+  } else if (sort === 'latest') {
+    result.sort((a, b) => b.id - a.id);
+  }
+
+  renderHomePage(result);
 }
 
 function clearAllProducts() {
@@ -220,6 +254,9 @@ function openAuctionDetail(productId) {
   document.getElementById('detail-max-price').innerText = p.maxPrice ? `฿${p.maxPrice.toLocaleString()}` : 'ไม่มี (ประมูลจนจบเวลา)';
   document.getElementById('detail-live-users').innerText = p.liveUsers;
 
+  const sellerNameElem = document.getElementById('detail-seller-name');
+  if (sellerNameElem) sellerNameElem.innerText = p.sellerName || "TechSeller";
+
   const bidInput = document.getElementById('bid-input');
   const minPrice = p.currentPrice + p.minBid;
   bidInput.value = minPrice;
@@ -233,7 +270,7 @@ function openAuctionDetail(productId) {
 function renderBidHistory(p) {
   const historyContainer = document.getElementById('bid-history-list');
   historyContainer.innerHTML = p.history.map(h => `
-    <div class="bid-item">
+    <div class="bid-item" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
       <span><strong>${h.user}</strong> (${h.time})</span>
       <span style="color:var(--primary-color); font-weight:bold;">฿${h.price.toLocaleString()}</span>
     </div>
@@ -269,8 +306,10 @@ function placeBid() {
   if (p.maxPrice && val >= p.maxPrice) {
     p.status = 'ENDED';
     alert(`🎉 คุณเสนอราคาถึงราคาสูงสุด (฿${p.maxPrice.toLocaleString()}) ชนะการประมูลทันที!`);
+    addNotification(`คุณชนะการประมูลสินค้า "${p.title}" ที่ราคา ฿${val.toLocaleString()}`);
   } else {
     alert('เสนอราคาเรียบร้อยแล้ว!');
+    addNotification(`คุณเสนอราคา ฿${val.toLocaleString()} ในสินค้า "${p.title}"`);
   }
 
   openAuctionDetail(p.id);
@@ -345,6 +384,7 @@ function handleCreateProduct(e) {
   }
 
   const title = document.getElementById('sell-title').value;
+  const category = document.getElementById('sell-category')?.value || 'other';
   const imgType = document.getElementById('img-input-type').value;
   let imgUrl = "";
 
@@ -378,6 +418,9 @@ function handleCreateProduct(e) {
   const newProd = {
     id: Date.now(),
     title: title,
+    category: category,
+    sellerName: currentUser.name,
+    sellerRating: "5.0 / 5 (ผู้ขายใหม่)",
     img: imgUrl,
     startPrice: startPrice,
     currentPrice: startPrice,
@@ -396,29 +439,66 @@ function handleCreateProduct(e) {
 }
 
 // ----------------------------------------------------
-// 7. Messenger Chat & Theme Toggle
+// 7. Messenger Chat & Theme Toggle & Notifications
 // ----------------------------------------------------
 function sendChatMessage() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
   if (!text) return;
 
-  const chatBody = document.getElementById('chat-body');
-  const userBubble = document.createElement('div');
-  userBubble.className = 'chat-bubble user';
-  userBubble.innerText = text;
-  chatBody.appendChild(userBubble);
-
+  appendChatBubble(text, 'user');
   input.value = '';
-  chatBody.scrollTop = chatBody.scrollHeight;
 
   setTimeout(() => {
-    const sellerBubble = document.createElement('div');
-    sellerBubble.className = 'chat-bubble seller';
-    sellerBubble.innerText = "รับทราบครับ ขอบคุณมากครับ!";
-    chatBody.appendChild(sellerBubble);
-    chatBody.scrollTop = chatBody.scrollHeight;
+    appendChatBubble("รับทราบครับ ขอบคุณมากครับ!", 'seller');
   }, 1200);
+}
+
+function sendChatImage(inputElem) {
+  if (inputElem.files && inputElem.files[0]) {
+    const imgUrl = URL.createObjectURL(inputElem.files[0]);
+    const imgContent = `<img src="${imgUrl}" style="max-width: 200px; border-radius: 8px;">`;
+    appendChatBubble(imgContent, 'user', true);
+
+    setTimeout(() => {
+      appendChatBubble("ได้รับรูปภาพเรียบร้อยแล้วครับ", 'seller');
+    }, 1500);
+  }
+}
+
+function appendChatBubble(content, type, isHtml = false) {
+  const chatBody = document.getElementById('chat-body');
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${type}`;
+  
+  if (isHtml) {
+    bubble.innerHTML = content;
+  } else {
+    bubble.innerText = content;
+  }
+
+  chatBody.appendChild(bubble);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function addNotification(msg) {
+  notifications.unshift(msg);
+  const badge = document.getElementById('notif-badge');
+  if (badge) {
+    badge.innerText = notifications.length;
+    badge.style.display = 'inline-block';
+  }
+}
+
+function toggleNotifications() {
+  if (notifications.length === 0) {
+    alert("ไม่มีการแจ้งเตือนใหม่");
+  } else {
+    alert("📢 รายการแจ้งเตือน:\n\n" + notifications.join("\n"));
+    notifications = [];
+    const badge = document.getElementById('notif-badge');
+    if (badge) badge.style.display = 'none';
+  }
 }
 
 function toggleTheme() {

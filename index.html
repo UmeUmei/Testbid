@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BidHub - ระบบประมูลสินค้าออนไลน์</title>
   <link rel="stylesheet" href="style.css">
+  <!-- เพิ่ม FontAwesome สำหรับไอคอนเพิ่มเติม -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
   <!-- ====================================================
-       SECTION: Navigation Bar (แถบเมนูด้านบน)
+        SECTION: Navigation Bar (แถบเมนูด้านบน)
   ==================================================== -->
   <nav class="navbar">
     <div class="nav-left">
@@ -23,13 +25,23 @@
       <li><a onclick="navigateTo('chat-page')">แชท</a></li>
       <li><a id="nav-login-btn" onclick="navigateTo('login-page')">เข้าสู่ระบบ</a></li>
     </ul>
-    <button class="theme-toggle" onclick="toggleTheme()">🌙/☀️ ธีม</button>
+    
+    <div class="nav-right" style="display: flex; align-items: center; gap: 1rem;">
+      <!-- [เพิ่มใหม่] ปุ่มแจ้งเตือน -->
+      <div class="notification-dropdown" style="position: relative;">
+        <button class="icon-btn" onclick="toggleNotifications()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; position: relative;">
+          🔔 <span id="notif-badge" class="badge" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; font-size: 0.7rem; padding: 2px 5px; display: none;">0</span>
+        </button>
+      </div>
+
+      <button class="theme-toggle" onclick="toggleTheme()">🌙/☀️ ธีม</button>
+    </div>
   </nav>
 
   <div class="container">
 
     <!-- ====================================================
-         SECTION 1: หน้าเข้าสู่ระบบ (Login Page - Updated)
+          SECTION 1: หน้าเข้าสู่ระบบ (Login Page)
     ==================================================== -->
     <div id="login-page" class="page">
       <div class="card" style="max-width: 400px; margin: 2rem auto;">
@@ -63,18 +75,35 @@
     </div>
 
     <!-- ====================================================
-         SECTION 2: หน้าหลักแสดงรายการประมูล (Home Page)
+          SECTION 2: หน้าหลักแสดงรายการประมูล (Home Page)
     ==================================================== -->
     <div id="home-page" class="page">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
         <h2>รายการประมูลทั้งหมด</h2>
         <button class="back-btn" onclick="clearAllProducts()">[ทดสอบ] ล้างรายการเป็น 0</button>
       </div>
+
+      <!-- [เพิ่มใหม่] แถบค้นหาและตัวกรองสินค้า -->
+      <div class="search-filter-bar" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <input type="text" id="search-input" placeholder="🔍 ค้นหาสินค้า..." onkeyup="filterProducts()" style="flex: 2; min-width: 200px; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color);">
+        <select id="category-filter" onchange="filterProducts()" style="flex: 1; min-width: 140px; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color);">
+          <option value="all">ทุกหมวดหมู่</option>
+          <option value="tech">🎮 ไอที / เกมมิ่ง</option>
+          <option value="camera">📷 กล้องถ่ายรูป</option>
+          <option value="fashion">👟 แฟชั่น</option>
+        </select>
+        <select id="sort-filter" onchange="filterProducts()" style="flex: 1; min-width: 140px; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color);">
+          <option value="latest">ใหม่ล่าสุด</option>
+          <option value="price-low">ราคาต่ำสุด</option>
+          <option value="price-high">ราคาสูงสุด</option>
+        </select>
+      </div>
+
       <div id="product-container"></div>
     </div>
 
     <!-- ====================================================
-         SECTION 3: หน้าโปรไฟล์ผู้ใช้งาน (Profile Page)
+          SECTION 3: หน้าโปรไฟล์ผู้ใช้งาน (Profile Page)
     ==================================================== -->
     <div id="profile-page" class="page">
       <div class="card" style="max-width: 600px; margin: 0 auto;">
@@ -109,14 +138,24 @@
     </div>
 
     <!-- ====================================================
-         SECTION 4: หน้าเข้าร่วมประมูลสินค้า (Auction Detail)
+          SECTION 4: หน้าเข้าร่วมประมูลสินค้า (Auction Detail)
     ==================================================== -->
     <div id="auction-page" class="page">
       <div class="card">
         <div class="auction-layout">
           <div class="product-gallery">
             <img id="detail-img" src="" alt="สินค้า">
+            
+            <!-- [เพิ่มใหม่] ข้อมูลผู้ขายและการให้คะแนน -->
+            <div class="seller-info-card" style="margin-top: 1rem; padding: 0.8rem; background: var(--bg-color); border-radius: 8px; display: flex; align-items: center; gap: 0.8rem;">
+              <div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1rem;">S</div>
+              <div>
+                <strong id="detail-seller-name">TechSeller</strong>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">คะแนนผู้ขาย: ⭐ 4.9 / 5 (32 รีวิว)</p>
+              </div>
+            </div>
           </div>
+          
           <div>
             <span class="badge-live">LIVE AUCTION</span>
             <h2 id="detail-title" style="margin-top: 0.5rem;">-</h2>
@@ -153,7 +192,7 @@
     </div>
 
     <!-- ====================================================
-         SECTION 5: หน้าวางขายสินค้า (Sell Page)
+          SECTION 5: หน้าวางขายสินค้า (Sell Page)
     ==================================================== -->
     <div id="sell-page" class="page">
       <div class="card" style="max-width: 600px; margin: 0 auto;">
@@ -163,6 +202,17 @@
           <div class="form-group" style="margin-top: 1rem;">
             <label>ชื่อสินค้า</label>
             <input type="text" id="sell-title" placeholder="เช่น หูฟังบลูทูธ สภาพใหม่" required>
+          </div>
+
+          <!-- [เพิ่มใหม่] เลือกหมวดหมู่สินค้า -->
+          <div class="form-group">
+            <label>หมวดหมู่สินค้า</label>
+            <select id="sell-category" required style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <option value="tech">🎮 ไอที / เกมมิ่ง</option>
+              <option value="camera">📷 กล้องถ่ายรูป</option>
+              <option value="fashion">👟 แฟชั่น</option>
+              <option value="other">📦 อื่นๆ</option>
+            </select>
           </div>
 
           <div class="form-group">
@@ -218,7 +268,7 @@
     </div>
 
     <!-- ====================================================
-         SECTION 6: หน้าแชททรง Messenger (Chat Page)
+          SECTION 6: หน้าแชททรง Messenger (Chat Page)
     ==================================================== -->
     <div id="chat-page" class="page">
       <div class="messenger-container">
@@ -252,8 +302,12 @@
             <div class="chat-bubble seller">พรุ่งนี้เช้าจัดส่งให้ทันทีครับ</div>
           </div>
 
-          <div class="chat-footer">
-            <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+          <div class="chat-footer" style="display: flex; gap: 0.5rem; align-items: center;">
+            <!-- [เพิ่มใหม่] ปุ่มแนบไฟล์/รูปภาพในแชท -->
+            <label for="chat-file-input" style="cursor: pointer; padding: 0.5rem; font-size: 1.2rem;">🖼️</label>
+            <input type="file" id="chat-file-input" accept="image/*" style="display: none;" onchange="sendChatImage(this)">
+
+            <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." onkeypress="if(event.key==='Enter') sendChatMessage()" style="flex: 1;">
             <button class="btn" style="border-radius: 20px; padding: 0.6rem 1.2rem;" onclick="sendChatMessage()">ส่ง</button>
           </div>
         </div>
